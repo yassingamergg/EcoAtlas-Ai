@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: ecoatlas-mqtt-broker
+    ports:
+      - "1883:1883"    # MQTT port
+      - "9001:9001"    # WebSocket port
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./data:/mosquitto/data
+      - ./logs:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - ecoatlas-network
+
+  mqtt-dashboard:
+    image: smeagolworms4/mqtt-dashboard
+    container_name: ecoatlas-mqtt-dashboard
+    ports:
+      - "3001:3000"
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    networks:
+      - ecoatlas-network
+
+networks:
+  ecoatlas-network:
+    driver: bridge

@@ -1,0 +1,35 @@
+{
+  "name": "ecoatlas-auth-backend",
+  "version": "1.0.0",
+  "description": "Authentication backend for EcoAtlas AI",
+  "main": "auth-server.js",
+  "scripts": {
+    "start": "node auth-server.js",
+    "dev": "nodemon auth-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.6",
+    "nodemailer": "^6.9.7",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "validator": "^13.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "authentication",
+    "security",
+    "nodejs",
+    "express",
+    "jwt",
+    "ecoatlas"
+  ],
+  "author": "EcoAtlas AI Team",
+  "license": "MIT"
+}
