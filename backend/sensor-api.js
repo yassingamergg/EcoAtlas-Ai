@@ -27,6 +27,7 @@ db.serialize(() => {
     air_quality INTEGER,
     co2_level INTEGER,
     light_level INTEGER,
+    wifi_signal INTEGER,
     location TEXT,
     node_type TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -52,19 +53,33 @@ router.post('/sensor-data', (req, res) => {
       node_type
     } = req.body;
 
-    // Validate required fields
-    if (!device_id || !timestamp) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: device_id and timestamp'
-      });
-    }
+  // Validate required fields
+  if (!device_id || !timestamp) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields: device_id and timestamp'
+    });
+  }
+
+  // Handle simplified sensor data (ESP32 without external sensors)
+  const sensorData = {
+    device_id,
+    timestamp,
+    temperature: temperature || null,
+    humidity: humidity || null,
+    air_quality: air_quality || null,
+    co2_level: co2_level || null,
+    light_level: light_level || null,
+    wifi_signal: req.body.wifi_signal || null,
+    location: location || 'Unknown',
+    node_type: node_type || 'environmental'
+  };
 
     // Insert sensor data into database
     const stmt = db.prepare(`
       INSERT INTO sensor_data 
-      (device_id, timestamp, temperature, humidity, air_quality, co2_level, light_level, location, node_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (device_id, timestamp, temperature, humidity, air_quality, co2_level, light_level, wifi_signal, location, node_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run([
@@ -75,6 +90,7 @@ router.post('/sensor-data', (req, res) => {
       air_quality || null,
       co2_level || null,
       light_level || null,
+      wifi_signal || null,
       location || 'Unknown',
       node_type || 'environmental'
     ], function(err) {
