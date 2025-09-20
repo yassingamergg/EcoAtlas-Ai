@@ -6,6 +6,8 @@ import UserProfile from './components/UserProfile';
 import html2canvas from 'html2canvas';
 import GoogleSignIn from './components/GoogleSignIn';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 
 // PDF Report Generation Functions
 const generateCarbonFootprintReport = (entries, scopeTotals, totalEmissions) => {
@@ -281,6 +283,7 @@ const EcoAtlasLogo = ({ className = "w-8 h-8" }) => (
 );
 
 const EcoAtlasApp = () => {
+  const { isDarkMode } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -1064,10 +1067,13 @@ const EcoAtlasApp = () => {
     );
   };
 
-  const Dashboard = () => (
-    <div className="space-y-6">
-      {/* Hero Stats Section */}
-      <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-8 rounded-2xl text-white relative overflow-hidden">
+  const Dashboard = () => {
+    const { isDarkMode } = useTheme();
+    
+    return (
+      <div className="space-y-6">
+        {/* Hero Stats Section */}
+        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-8 rounded-2xl text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-blue-600/20"></div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
@@ -1139,8 +1145,8 @@ const EcoAtlasApp = () => {
       {/* Main Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Carbon Trend Chart */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">📈 Carbon Footprint Trend</h3>
+        <div className={`lg:col-span-2 p-6 rounded-xl shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h3 className={`text-lg font-semibold mb-4 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>📈 Carbon Footprint Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dashboardData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -1154,8 +1160,8 @@ const EcoAtlasApp = () => {
         </div>
 
         {/* Carbon Sources Breakdown */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">🥧 Sources Breakdown</h3>
+        <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h3 className={`text-lg font-semibold mb-4 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>🥧 Sources Breakdown</h3>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
@@ -1179,9 +1185,9 @@ const EcoAtlasApp = () => {
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-sm">{item.name}</span>
+                  <span className={`text-sm transition-colors duration-300 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{item.name}</span>
                 </div>
-                <span className="text-sm font-bold">{item.value}%</span>
+                <span className={`text-sm font-bold transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.value}%</span>
               </div>
             ))}
           </div>
@@ -1189,9 +1195,9 @@ const EcoAtlasApp = () => {
       </div>
 
       {/* PDF Report Generation */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center">
+          <h3 className={`text-lg font-semibold flex items-center transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             <FileText className="w-5 h-5 text-blue-600 mr-2" />
             Generate Reports
           </h3>
@@ -1237,7 +1243,8 @@ const EcoAtlasApp = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
 
   // Rich activity factors, units and scope mapping
@@ -4734,22 +4741,25 @@ const EcoAtlasApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className={`shadow-sm border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <EcoAtlasLogo className="w-8 h-8" />
-              <h1 className="text-2xl font-bold text-gray-900">EcoAtlas AI</h1>
+              <h1 className={`text-2xl font-bold transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EcoAtlas AI</h1>
             </div>
-            <UserProfile user={user} onLogout={handleLogout} />
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <UserProfile user={user} onLogout={handleLogout} />
+            </div>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className={`border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-2 overflow-x-auto nav-scroll py-2">
             {[
@@ -4772,7 +4782,11 @@ const EcoAtlasApp = () => {
                 onClick={() => setActiveTab(id)}
                 className={`flex items-center space-x-2 font-medium text-sm whitespace-nowrap px-3 py-2 transition-colors border ${
                   activeTab === id
-                    ? 'text-green-700 bg-green-50 border-green-200 rounded-lg'
+                    ? isDarkMode
+                      ? 'text-green-400 bg-green-900/30 border-green-700 rounded-lg'
+                      : 'text-green-700 bg-green-50 border-green-200 rounded-lg'
+                    : isDarkMode
+                    ? 'text-gray-300 border-transparent hover:bg-gray-700 rounded-lg'
                     : 'text-gray-600 border-transparent hover:bg-gray-50 rounded-lg'
                 }`}
               >
@@ -4804,7 +4818,11 @@ const EcoAtlasApp = () => {
       {/* AI Chat Button */}
       <button
         onClick={() => setShowAIChat(!showAIChat)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+          isDarkMode 
+            ? 'bg-green-600 hover:bg-green-700 text-white' 
+            : 'bg-green-600 hover:bg-green-700 text-white'
+        }`}
       >
         <MessageCircle className="w-6 h-6" />
       </button>
@@ -4815,12 +4833,14 @@ const EcoAtlasApp = () => {
   );
 };
 
-// Main App component with AuthProvider
+// Main App component with AuthProvider and ThemeProvider
 const App = () => {
   return (
-    <AuthProvider>
-      <EcoAtlasApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <EcoAtlasApp />
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 
