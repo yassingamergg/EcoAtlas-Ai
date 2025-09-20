@@ -353,7 +353,46 @@ const EcoAtlasApp = () => {
     }
   ];
 
-  const handleLogin = () => {
+  const [loginData, setLoginData] = useState({
+    username: '',
+    password: ''
+  });
+  const [isLogin, setIsLogin] = useState(true);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: loginData.username,
+          password: loginData.password
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        setAuthMethod('email');
+        setIsAuthenticated(true);
+        setShowLogin(false);
+        setLoginData({ username: '', password: '' });
+      } else {
+        alert(data.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Network error. Please try again.');
+    }
+  };
+
+  const handleDemoLogin = () => {
     setIsAuthenticated(true);
     setShowLogin(false);
     setAuthMethod('demo');
@@ -364,15 +403,96 @@ const EcoAtlasApp = () => {
     });
   };
 
-  const handleSignup = () => {
-    setIsAuthenticated(true);
-    setShowLogin(false);
-    setAuthMethod('demo');
-    setUser({
-      name: 'Demo User',
-      email: 'demo@ecoatlas.ai',
-      provider: 'demo'
-    });
+  const [signupData, setSignupData] = useState({
+    username: '',
+    email: '',
+    realName: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (signupData.password !== signupData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    
+    if (signupData.password.length < 8) {
+      alert('Password must be at least 8 characters long');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: signupData.username,
+          email: signupData.email,
+          realName: signupData.realName,
+          password: signupData.password
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSignupEmail(signupData.email);
+        setShowVerification(true);
+        alert('Account created! Please check your email for verification code.');
+      } else {
+        alert(data.error || 'Signup failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('Network error. Please try again.');
+    }
+  };
+
+  const handleVerification = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: signupEmail,
+          verificationCode: verificationCode
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Account verified successfully! You can now log in.');
+        setShowVerification(false);
+        setIsLogin(true);
+        setSignupData({
+          username: '',
+          email: '',
+          realName: '',
+          password: '',
+          confirmPassword: ''
+        });
+        setVerificationCode('');
+      } else {
+        alert(data.error || 'Verification failed');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      alert('Network error. Please try again.');
+    }
   };
 
   const handleGoogleSignIn = (userData) => {
@@ -695,85 +815,254 @@ const EcoAtlasApp = () => {
     return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
   };
 
-  const AuthModal = ({ isLogin, setIsLogin }) => (
-    <div className="fixed inset-0 flex items-center justify-center z-50" style={{background: 'rgba(0,0,0,0.5)'}}>
-      <div className="w-96 max-w-90vw rounded-3xl overflow-hidden shadow-2xl" style={{boxShadow: '0 20px 40px rgba(0,0,0,0.3)'}}>
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white rounded-t-3xl">
-          <div className="flex items-center justify-center">
-            <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center mr-3">
-              <EcoAtlasLogo className="w-8 h-8" />
-          </div>
-            <div>
-              <div className="text-2xl font-bold">EcoAtlas AI</div>
-              <div className="text-sm opacity-90">Your carbon companion</div>
+  const AuthModal = ({ isLogin, setIsLogin }) => {
+    if (showVerification) {
+      return (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{background: 'rgba(0,0,0,0.5)'}}>
+          <div className="w-96 max-w-90vw rounded-3xl overflow-hidden shadow-2xl" style={{boxShadow: '0 20px 40px rgba(0,0,0,0.3)'}}>
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white rounded-t-3xl">
+              <div className="flex items-center justify-center">
+                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center mr-3">
+                  <EcoAtlasLogo className="w-8 h-8" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">Verify Your Account</div>
+                  <div className="text-sm opacity-90">Check your email for verification code</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-b-3xl">
+              <form onSubmit={handleVerification} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    placeholder="Enter 6-digit code"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 px-6 rounded-2xl font-bold text-sm hover:from-emerald-700 hover:to-teal-700 transition-all duration-200"
+                >
+                  Verify Account
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowVerification(false)}
+                  className="w-full text-emerald-600 hover:text-emerald-700 font-medium text-sm py-2"
+                >
+                  Back to Signup
+                </button>
+              </form>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-b-3xl">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {isLogin ? 'Welcome Back!' : 'Join EcoAtlas'}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {isLogin ? 'Track and reduce your footprint with ease' : 'Start your sustainability journey today'}
-            </p>
+      );
+    }
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50" style={{background: 'rgba(0,0,0,0.5)'}}>
+        <div className="w-96 max-w-90vw rounded-3xl overflow-hidden shadow-2xl" style={{boxShadow: '0 20px 40px rgba(0,0,0,0.3)'}}>
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white rounded-t-3xl">
+            <div className="flex items-center justify-center">
+              <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center mr-3">
+                <EcoAtlasLogo className="w-8 h-8" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">EcoAtlas AI</div>
+                <div className="text-sm opacity-90">Your carbon companion</div>
+              </div>
+            </div>
           </div>
           
-          <div className="max-w-sm mx-auto space-y-4">
-            {/* Google Sign-In */}
-            <div className="space-y-3">
-              <GoogleSignIn 
-                onSuccess={handleGoogleSignIn}
-                onError={handleGoogleSignInError}
-              />
+          <div className="bg-white p-6 rounded-b-3xl">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {isLogin ? 'Welcome Back!' : 'Join EcoAtlas'}
+              </h2>
+              <p className="text-sm text-gray-600">
+                {isLogin ? 'Track and reduce your footprint with ease' : 'Start your sustainability journey today'}
+              </p>
+            </div>
+            
+            <div className="max-w-sm mx-auto space-y-4">
+              {/* Google Sign-In */}
+              <div className="space-y-3">
+                <GoogleSignIn 
+                  onSuccess={handleGoogleSignIn}
+                  onError={handleGoogleSignInError}
+                />
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                  </div>
+                </div>
+              </div>
               
+              {/* Email Login/Signup Form */}
+              <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
+                {!isLogin && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={signupData.realName}
+                        onChange={(e) => setSignupData({...signupData, realName: e.target.value})}
+                        placeholder="Enter your full name"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={signupData.email}
+                        onChange={(e) => setSignupData({...signupData, email: e.target.value})}
+                        placeholder="Enter your email"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        value={signupData.username}
+                        onChange={(e) => setSignupData({...signupData, username: e.target.value})}
+                        placeholder="Choose a username"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+                
+                {isLogin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Username or Email
+                    </label>
+                    <input
+                      type="text"
+                      value={loginData.username}
+                      onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                      placeholder="Enter username or email"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={isLogin ? loginData.password : signupData.password}
+                    onChange={(e) => isLogin 
+                      ? setLoginData({...loginData, password: e.target.value})
+                      : setSignupData({...signupData, password: e.target.value})
+                    }
+                    placeholder="Enter your password"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                  />
+                </div>
+                
+                {!isLogin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      value={signupData.confirmPassword}
+                      onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
+                      placeholder="Confirm your password"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                )}
+                
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 px-6 rounded-2xl font-bold text-sm hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  {isLogin ? 'Sign In' : 'Create Account'}
+                </button>
+              </form>
+              
+              {/* Demo Login */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with demo</span>
+                  <span className="px-2 bg-white text-gray-500">Or try demo</span>
                 </div>
               </div>
-            </div>
-            
-            {/* Demo Login */}
-            <button
-              onClick={isLogin ? handleLogin : handleSignup}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 px-6 rounded-2xl font-bold text-sm hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 transform hover:scale-105"
-            >
-              {isLogin ? 'Demo Sign In' : 'Demo Account'}
-            </button>
-            
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                Demo account for testing features
-              </p>
-            </div>
-        </div>
-        
-          <div className="mt-6 text-center">
-          <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-emerald-600 hover:text-emerald-700 font-medium text-sm border border-emerald-600 px-4 py-2 rounded-2xl hover:bg-emerald-50 transition-all duration-200"
-          >
-            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-          </button>
-          </div>
-          
-          {/* Compact features for sign up */}
-          {!isLogin && (
-            <div className="mt-4 p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-              <div className="text-xs font-medium text-gray-700 text-center">
-                Get real-time tracking, AI insights & IoT integration
+              
+              <button
+                onClick={handleDemoLogin}
+                className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all duration-200"
+              >
+                Demo Account
+              </button>
+              
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  Demo account for testing features
+                </p>
               </div>
             </div>
-          )}
+            
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-emerald-600 hover:text-emerald-700 font-medium text-sm border border-emerald-600 px-4 py-2 rounded-2xl hover:bg-emerald-50 transition-all duration-200"
+              >
+                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              </button>
+            </div>
+            
+            {/* Compact features for sign up */}
+            {!isLogin && (
+              <div className="mt-4 p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+                <div className="text-xs font-medium text-gray-700 text-center">
+                  Get real-time tracking, AI insights & IoT integration
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const Dashboard = () => (
     <div className="space-y-6">
@@ -4207,10 +4496,9 @@ const EcoAtlasApp = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div className="text-center">
             <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
-              {user?.realName ? user.realName.split(' ').map(n => n[0]).join('').toUpperCase() : 
-               user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+              YA
             </div>
-            <h4 className="text-xl font-bold text-gray-900 mb-2">{user?.realName || user?.name || 'User'}</h4>
+            <h4 className="text-xl font-bold text-gray-900 mb-2">Yassin Alaaeldin</h4>
             <p className="text-green-600 font-semibold mb-3">Co-Founder & CEO</p>
             <p className="text-gray-600 text-sm">
               AI & Machine Learning expert with 8+ years in environmental technology. Passionate about democratizing carbon intelligence and building sustainable futures through innovation.
