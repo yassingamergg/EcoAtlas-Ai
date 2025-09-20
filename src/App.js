@@ -3592,18 +3592,24 @@ const EcoAtlasApp = () => {
                         </div>
                       </div>
 
-                      {/* Carbon Emissions */}
-                      <div className="bg-gray-50 rounded-lg p-3">
+                      {/* Air Quality */}
+                      <div className={`rounded-lg p-3 ${
+                        isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <Activity className="w-4 h-4 text-green-600" />
-                            <span className="text-sm font-medium text-gray-900">Carbon Emissions</span>
+                            <Wind className="w-4 h-4 text-blue-600" />
+                            <span className={`text-sm font-medium transition-colors duration-300 ${
+                              isDarkMode ? 'text-white' : 'text-gray-900'
+                            }`}>Air Quality</span>
                           </div>
-                          <span className="text-sm font-bold text-green-600">
-                            {co2Emissions.toFixed(3)} kg CO₂
+                          <span className={`text-sm font-bold ${airQuality.color}`}>
+                            {deviceData.air_quality || 0} PPM
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 mt-1">Estimated from power consumption</p>
+                        <p className={`text-xs mt-1 transition-colors duration-300 ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>{airQuality.status}</p>
                       </div>
                     </div>
                   </div>
