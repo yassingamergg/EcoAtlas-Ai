@@ -4999,9 +4999,9 @@ const EcoAtlasApp = () => {
       </header>
 
       {/* Navigation */}
-      <nav className={`border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <nav className={`border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-2 overflow-x-auto nav-scroll py-2">
+          <div className="flex space-x-2 overflow-x-auto nav-scroll py-3">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: TrendingDown },
               { id: 'iot', label: 'IoT Sensors', icon: Wifi },
@@ -5020,14 +5020,14 @@ const EcoAtlasApp = () => {
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`flex items-center space-x-2 font-medium text-sm whitespace-nowrap px-3 py-2 transition-colors border ${
+                className={`flex items-center space-x-2 font-medium text-sm whitespace-nowrap px-3 py-2 transition-all duration-300 border ${
                   activeTab === id
                     ? isDarkMode
-                      ? 'text-green-400 bg-green-900/30 border-green-700 rounded-lg'
-                      : 'text-green-700 bg-green-50 border-green-200 rounded-lg'
+                      ? 'text-white bg-blue-600 border-blue-500 rounded-lg shadow-lg'
+                      : 'text-white bg-green-600 border-green-500 rounded-lg shadow-lg'
                     : isDarkMode
-                    ? 'text-gray-300 border-transparent hover:bg-gray-700 rounded-lg'
-                    : 'text-gray-600 border-transparent hover:bg-gray-50 rounded-lg'
+                    ? 'text-gray-300 border-transparent hover:bg-gray-700 hover:text-white rounded-lg'
+                    : 'text-gray-600 border-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg'
                 }`}
               >
                 <Icon className="w-4 h-4" />
