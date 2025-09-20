@@ -8,6 +8,7 @@ import GoogleSignIn from './components/GoogleSignIn';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
+import ThemeSelector from './components/ThemeSelector';
 
 // PDF Report Generation Functions
 const generateCarbonFootprintReport = (entries, scopeTotals, totalEmissions) => {
@@ -4367,54 +4368,296 @@ const EcoAtlasApp = () => {
     </div>
   );
 
-  const SettingsPage = () => (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-slate-700 to-gray-700 p-8 rounded-xl text-white">
-        <h2 className="text-2xl font-bold mb-2">Settings & Preferences</h2>
-        <p className="opacity-90">Customize your EcoAtlas AI experience</p>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">👤 Account Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <input
-                type="text"
-                defaultValue={user?.realName || user?.name || 'User'}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-              <input
-                type="email"
-                defaultValue={user?.email || 'user@example.com'}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">🔔 Notifications</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Email notifications</span>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-green-600">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6" />
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Push notifications</span>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
-              </button>
+  const SettingsPage = () => {
+    const { isDarkMode } = useTheme();
+    
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className={`p-8 rounded-2xl text-white relative overflow-hidden ${
+          isDarkMode 
+            ? 'bg-gradient-to-r from-gray-800 to-gray-900' 
+            : 'bg-gradient-to-r from-slate-700 to-gray-700'
+        }`}>
+          <div className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-blue-600/20"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Settings className="w-8 h-8" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold">Settings & Preferences</h2>
+                <p className="text-lg opacity-90">Customize your EcoAtlas AI experience</p>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Theme Selector */}
+        <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
+          <ThemeSelector />
+        </div>
+
+        {/* Settings Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Account Settings */}
+          <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Account Settings</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage your profile information</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>Full Name</label>
+                <input
+                  type="text"
+                  defaultValue={user?.realName || user?.name || 'User'}
+                  className={`w-full p-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>Email Address</label>
+                <input
+                  type="email"
+                  defaultValue={user?.email || 'user@example.com'}
+                  className={`w-full p-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>Organization</label>
+                <input
+                  type="text"
+                  placeholder="Your company or organization"
+                  className={`w-full p-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          {/* Notifications */}
+          <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Bell className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Control how you receive updates</p>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>Email Notifications</p>
+                  <p className={`text-sm transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>Receive updates via email</p>
+                </div>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-green-600 transition-colors">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6 transition-transform" />
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>Push Notifications</p>
+                  <p className={`text-sm transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>Browser push notifications</p>
+                </div>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600 transition-colors">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1 transition-transform" />
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>Weekly Reports</p>
+                  <p className={`text-sm transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>Get weekly carbon footprint summaries</p>
+                </div>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-green-600 transition-colors">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy & Security */}
+          <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <Key className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Privacy & Security</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage your data and security</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <button className={`w-full p-3 rounded-lg border transition-colors duration-300 text-left ${
+                isDarkMode 
+                  ? 'border-gray-600 hover:bg-gray-700 text-white' 
+                  : 'border-gray-300 hover:bg-gray-50 text-gray-900'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Change Password</p>
+                    <p className={`text-sm ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Update your account password</p>
+                  </div>
+                  <Settings className="w-4 h-4" />
+                </div>
+              </button>
+              
+              <button className={`w-full p-3 rounded-lg border transition-colors duration-300 text-left ${
+                isDarkMode 
+                  ? 'border-gray-600 hover:bg-gray-700 text-white' 
+                  : 'border-gray-300 hover:bg-gray-50 text-gray-900'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Two-Factor Authentication</p>
+                    <p className={`text-sm ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Add an extra layer of security</p>
+                  </div>
+                  <Settings className="w-4 h-4" />
+                </div>
+              </button>
+              
+              <button className={`w-full p-3 rounded-lg border transition-colors duration-300 text-left ${
+                isDarkMode 
+                  ? 'border-gray-600 hover:bg-gray-700 text-white' 
+                  : 'border-gray-300 hover:bg-gray-50 text-gray-900'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Data Export</p>
+                    <p className={`text-sm ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Download your carbon data</p>
+                  </div>
+                  <Download className="w-4 h-4" />
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* App Preferences */}
+          <div className={`p-6 rounded-xl shadow-sm border transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                <Settings className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">App Preferences</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Customize your app experience</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>Default Dashboard View</label>
+                <select className={`w-full p-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}>
+                  <option>Overview</option>
+                  <option>Detailed Analytics</option>
+                  <option>Quick Stats</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>Units</label>
+                <select className={`w-full p-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}>
+                  <option>Metric (kg, km, °C)</option>
+                  <option>Imperial (lbs, miles, °F)</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>Auto-save Data</p>
+                  <p className={`text-sm transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>Automatically save your entries</p>
+                </div>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-green-600 transition-colors">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const AboutPage = () => (
     <div className="space-y-6">
@@ -4750,10 +4993,7 @@ const EcoAtlasApp = () => {
               <EcoAtlasLogo className="w-8 h-8" />
               <h1 className={`text-2xl font-bold transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EcoAtlas AI</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
-              <UserProfile user={user} onLogout={handleLogout} />
-            </div>
+            <UserProfile user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>
