@@ -3264,25 +3264,73 @@ const EcoAtlasApp = () => {
   );
 
   const IoTSensors = () => {
+    const { isDarkMode } = useTheme();
     const [selectedView, setSelectedView] = useState('grid');
     const [selectedTimeRange, setSelectedTimeRange] = useState('live');
     const [realTimeData, setRealTimeData] = useState([]);
     const [deviceStatus, setDeviceStatus] = useState({});
     const [isConnected, setIsConnected] = useState(false);
     const [wsConnection, setWsConnection] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     
-    // Mock data for demo (when no real ESP32 is connected)
-    const [sensorData, setSensorData] = useState([
-      { time: '14:00', temperature: 435, humidity: 45, co2: 18 },
-      { time: '14:15', temperature: 440, humidity: 47, co2: 19 },
-      { time: '14:30', temperature: 445, humidity: 46, co2: 17 },
-      { time: '14:45', temperature: 450, humidity: 48, co2: 20 },
-      { time: '15:00', temperature: 455, humidity: 49, co2: 21 },
-      { time: '15:15', temperature: 460, humidity: 50, co2: 19 },
-      { time: '15:30', temperature: 485, humidity: 51, co2: 22 },
-      { time: '15:45', temperature: 470, humidity: 49, co2: 20 },
-      { time: '16:00', temperature: 465, humidity: 48, co2: 18 }
-    ]);
+    // Real sensor data from ESP32
+    const [sensorData, setSensorData] = useState([]);
+    const [devices, setDevices] = useState([]);
+    const [latestData, setLatestData] = useState({});
+
+    // Fetch sensor data from backend
+    const fetchSensorData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch latest data from all devices
+        const response = await fetch('http://localhost:5000/api/sensor-data/latest');
+        if (!response.ok) throw new Error('Failed to fetch sensor data');
+        
+        const data = await response.json();
+        if (data.success) {
+          setLatestData(data.data);
+          setIsConnected(true);
+        }
+        
+        // Fetch historical data
+        const historyResponse = await fetch('http://localhost:5000/api/sensor-data?limit=50');
+        if (historyResponse.ok) {
+          const historyData = await historyResponse.json();
+          if (historyData.success) {
+            setSensorData(historyData.data);
+          }
+        }
+        
+        // Fetch device list
+        const devicesResponse = await fetch('http://localhost:5000/api/devices');
+        if (devicesResponse.ok) {
+          const devicesData = await devicesResponse.json();
+          if (devicesData.success) {
+            setDevices(devicesData.devices);
+          }
+        }
+        
+      } catch (err) {
+        console.error('Error fetching sensor data:', err);
+        setError(err.message);
+        setIsConnected(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Initial data fetch
+    useEffect(() => {
+      fetchSensorData();
+      
+      // Set up polling for real-time updates
+      const interval = setInterval(fetchSensorData, 30000); // Every 30 seconds
+      
+      return () => clearInterval(interval);
+    }, []);
 
     // WebSocket connection for real-time ESP32 data
     useEffect(() => {
@@ -3370,20 +3418,34 @@ const EcoAtlasApp = () => {
         </div>
 
         {/* Main Sensors - Real ESP32 Data */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className={`rounded-xl shadow-sm border p-6 transition-colors duration-300 ${
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Wifi className="w-5 h-5 text-green-600" />
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                isDarkMode ? 'bg-green-900/30' : 'bg-green-100'
+              }`}>
+                <Wifi className={`w-5 h-5 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Main Sensors</h3>
-                <p className="text-sm text-gray-600">Live ESP32 environmental monitoring</p>
+                <h3 className={`text-xl font-bold transition-colors duration-300 ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}>Main Sensors</h3>
+                <p className={`text-sm transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>Live ESP32 environmental monitoring</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
-                isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                isConnected 
+                  ? isDarkMode 
+                    ? 'bg-green-900/30 text-green-400' 
+                    : 'bg-green-100 text-green-800'
+                  : isDarkMode
+                  ? 'bg-red-900/30 text-red-400'
+                  : 'bg-red-100 text-red-800'
               }`}>
                 <div className={`w-2 h-2 rounded-full ${
                   isConnected ? 'bg-green-500' : 'bg-red-500'
@@ -3392,47 +3454,71 @@ const EcoAtlasApp = () => {
                   {isConnected ? 'Connected' : 'Disconnected'}
                 </span>
               </div>
-              <span className="text-sm text-gray-500">
-                {esp32Devices.length} device{esp32Devices.length !== 1 ? 's' : ''} online
+              <span className={`text-sm transition-colors duration-300 ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                {devices.length} device{devices.length !== 1 ? 's' : ''} online
               </span>
             </div>
           </div>
 
-          {esp32Devices.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className={`ml-3 transition-colors duration-300 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>Loading sensor data...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <div className="text-red-500 mb-2">❌ Error loading sensor data</div>
+              <p className={`text-sm transition-colors duration-300 ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>{error}</p>
+              <button 
+                onClick={fetchSensorData}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : devices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {esp32Devices.map(deviceId => {
-                const latestData = getLatestRealTimeData(deviceId);
-                const deviceStatus = deviceStatus[deviceId] || { status: 'unknown' };
+              {devices.map(device => {
+                const deviceId = device.device_id;
+                const deviceData = latestData.find(d => d.device_id === deviceId);
+                const isOnline = device.last_seen && new Date(device.last_seen) > new Date(Date.now() - 5 * 60 * 1000); // 5 minutes
                 
-                if (!latestData) return null;
-
-                // Calculate carbon emissions
-                const powerWatts = latestData.power_consumption || 0;
-                const powerKWh = powerWatts / 1000;
-                const co2Emissions = powerKWh * 0.4; // 0.4 kg CO2 per kWh
+                if (!deviceData) return null;
 
                 // Get air quality status
-                const getAirQualityStatus = (pm25) => {
-                  if (pm25 <= 12) return { status: 'Good', color: 'text-green-600', bg: 'bg-green-100' };
-                  if (pm25 <= 35) return { status: 'Moderate', color: 'text-yellow-600', bg: 'bg-yellow-100' };
-                  if (pm25 <= 55) return { status: 'Unhealthy for Sensitive', color: 'text-orange-600', bg: 'bg-orange-100' };
+                const getAirQualityStatus = (aq) => {
+                  if (aq <= 50) return { status: 'Good', color: 'text-green-600', bg: 'bg-green-100' };
+                  if (aq <= 100) return { status: 'Moderate', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+                  if (aq <= 150) return { status: 'Unhealthy for Sensitive', color: 'text-orange-600', bg: 'bg-orange-100' };
                   return { status: 'Unhealthy', color: 'text-red-600', bg: 'bg-red-100' };
                 };
 
-                const airQuality = getAirQualityStatus(latestData.pm25);
+                const airQuality = getAirQualityStatus(deviceData.air_quality || 0);
 
                 return (
-                  <div key={deviceId} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={deviceId} className={`border rounded-lg p-4 hover:shadow-md transition-all duration-300 ${
+                    isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
+                  }`}>
                     {/* Device Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <div className={`w-3 h-3 rounded-full ${
-                          deviceStatus.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                          isOnline ? 'bg-green-500' : 'bg-red-500'
                         }`}></div>
-                        <h4 className="font-semibold text-gray-900">ESP32-{deviceId}</h4>
+                        <h4 className={`font-semibold transition-colors duration-300 ${
+                          isDarkMode ? 'text-white' : 'text-gray-900'
+                        }`}>{deviceId}</h4>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(latestData.timestamp).toLocaleTimeString()}
+                      <span className={`text-xs transition-colors duration-300 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {device.last_seen ? new Date(device.last_seen).toLocaleTimeString() : 'Never'}
                       </span>
                     </div>
 
@@ -3443,19 +3529,27 @@ const EcoAtlasApp = () => {
                         <div className="flex items-center space-x-2">
                           <Thermometer className="w-4 h-4 text-red-500" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {latestData.temperature.toFixed(1)}°C
+                            <p className={`text-sm font-medium transition-colors duration-300 ${
+                              isDarkMode ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              {deviceData.temperature ? deviceData.temperature.toFixed(1) : 'N/A'}°C
                             </p>
-                            <p className="text-xs text-gray-600">Temperature</p>
+                            <p className={`text-xs transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>Temperature</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Droplet className="w-4 h-4 text-blue-500" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {latestData.humidity.toFixed(1)}%
+                            <p className={`text-sm font-medium transition-colors duration-300 ${
+                              isDarkMode ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              {deviceData.humidity ? deviceData.humidity.toFixed(1) : 'N/A'}%
                             </p>
-                            <p className="text-xs text-gray-600">Humidity</p>
+                            <p className={`text-xs transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>Humidity</p>
                           </div>
                         </div>
                       </div>
