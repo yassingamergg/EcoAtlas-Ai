@@ -5026,7 +5026,7 @@ const EcoAtlasApp = () => {
                       ? 'text-white bg-blue-600 border-blue-500 rounded-lg shadow-lg'
                       : 'text-white bg-green-600 border-green-500 rounded-lg shadow-lg'
                     : isDarkMode
-                    ? 'text-gray-300 border-transparent hover:bg-gray-700 hover:text-white rounded-lg'
+                    ? 'text-white border-transparent hover:bg-gray-700 hover:text-white rounded-lg'
                     : 'text-gray-600 border-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg'
                 }`}
               >
