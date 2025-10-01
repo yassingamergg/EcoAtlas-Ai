@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "ecoatlas-ai",
   "builds": [
     {
       "src": "package.json",
@@ -21,14 +20,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "REACT_APP_API_URL": "@react_app_api_url",
-    "REACT_APP_GOOGLE_CLIENT_ID": "@react_app_google_client_id"
-  },
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  ]
 }

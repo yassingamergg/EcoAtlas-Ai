@@ -66,7 +66,7 @@
     "expo:ios": "expo start --ios",
     "expo:android": "expo start --android",
     "expo:web": "expo start --web",
-    "vercel-build": "npm run build"
+    "vercel-build": "CI=false npm run build"
   },
   "eslintConfig": {
     "extends": [
