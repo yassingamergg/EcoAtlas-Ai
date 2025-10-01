@@ -50,7 +50,7 @@ const GoogleSignIn = ({ onSuccess, onError }) => {
           window.google.accounts.id.renderButton(googleButtonRef.current, {
             theme: 'outline',
             size: 'large',
-            width: '100%',
+            width: 300,
             text: 'signin_with',
             shape: 'rectangular',
             logo_alignment: 'left'
@@ -116,7 +116,7 @@ const GoogleSignIn = ({ onSuccess, onError }) => {
         window.google.accounts.id.cancel();
       }
     };
-  }, [onSuccess, onError]);
+  }, [onSuccess, onError, googleLogin]);
 
   return (
     <div className="w-full">

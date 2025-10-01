@@ -18,11 +18,11 @@
 #include <LiquidCrystal_I2C.h>
 
 // WiFi Configuration
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "Xiaomi_1929";
+const char* password = "Jojo.321";
 
 // EcoAtlas AI Backend URL (replace with your computer's IP)
-const char* serverURL = "http://192.168.1.100:5000/api/sensor-data";
+const char* serverURL = "http://192.168.31.247:5000/api/sensor-data";
 // Find your IP with: ipconfig (Windows) or ifconfig (Mac/Linux)
 
 // LCD Configuration (I2C Address: 0x27)
@@ -34,7 +34,7 @@ int wifiSignal = 0;
 unsigned long lastUpdate = 0;
 const unsigned long updateInterval = 30000; // 30 seconds
 
-// Device ID (unique for each sensor node)
+// Device ID (unique for each sensor node)    
 const String deviceId = "ESP32_SIMPLE_001";
 
 void setup() {

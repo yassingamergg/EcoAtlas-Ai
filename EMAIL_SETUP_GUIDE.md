@@ -156,3 +156,30 @@ Your email confirmation system is now fully functional! Users will receive profe
 
 To customize the email template, edit the HTML in the `mailOptions` object in `auth-server.js` around line 203.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

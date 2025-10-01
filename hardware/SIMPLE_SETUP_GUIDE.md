@@ -26,7 +26,7 @@ That's it! Only 4 connections needed.
 1. Download from [arduino.cc](https://www.arduino.cc/en/software)
 2. Install ESP32 board package:
    - File → Preferences → Additional Board Manager URLs
-   - Add: `https://dl.espressif.com/dl/package_esp32_index.json`
+   - Add: ` `
    - Tools → Board → Boards Manager → Search "ESP32" → Install
 
 ### **Step 2: Install Libraries**

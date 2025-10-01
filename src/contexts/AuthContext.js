@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
 
   // API base URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   // Initialize authentication state from localStorage
   useEffect(() => {

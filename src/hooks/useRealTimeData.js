@@ -93,7 +93,8 @@ export const useRealTimeData = () => {
   };
 
   useEffect(() => {
-    connectWebSocket();
+    // Disable WebSocket for now since our simple backend doesn't support it
+    // connectWebSocket();
     
     return () => {
       disconnectWebSocket();
@@ -103,29 +104,31 @@ export const useRealTimeData = () => {
   // Fetch initial data from API
   const fetchInitialData = async () => {
     try {
-      const [sensorResponse, deviceResponse, carbonResponse] = await Promise.all([
+      const [sensorResponse, deviceResponse] = await Promise.all([
         fetch('http://localhost:5000/api/sensor-data?limit=50'),
-        fetch('http://localhost:5000/api/devices'),
-        fetch('http://localhost:5000/api/carbon-data?limit=50')
+        fetch('http://localhost:5000/api/devices')
       ]);
 
       if (sensorResponse.ok) {
-        const sensorData = await sensorResponse.json();
-        setSensorData(sensorData);
+        const response = await sensorResponse.json();
+        // Handle our simple backend response format
+        if (response.success && response.data) {
+          setSensorData(response.data);
+        } else {
+          setSensorData(response);
+        }
       }
 
       if (deviceResponse.ok) {
-        const devices = await deviceResponse.json();
-        const deviceMap = {};
-        devices.forEach(device => {
-          deviceMap[device.device_id] = device;
-        });
-        setDeviceStatus(deviceMap);
-      }
-
-      if (carbonResponse.ok) {
-        const carbonData = await carbonResponse.json();
-        setCarbonData(carbonData);
+        const response = await deviceResponse.json();
+        // Handle our simple backend response format
+        if (response.success && response.devices) {
+          const deviceMap = {};
+          response.devices.forEach(device => {
+            deviceMap[device.device_id] = device;
+          });
+          setDeviceStatus(deviceMap);
+        }
       }
     } catch (err) {
       console.error('Error fetching initial data:', err);
@@ -135,6 +138,11 @@ export const useRealTimeData = () => {
 
   useEffect(() => {
     fetchInitialData();
+    
+    // Refresh data every 30 seconds since we don't have WebSocket
+    const interval = setInterval(fetchInitialData, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   return {
@@ -181,10 +189,25 @@ export const useStats = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/stats');
+      // Since our simple backend doesn't have stats endpoint, create basic stats from sensor data
+      const response = await fetch('http://localhost:5000/api/sensor-data?limit=100');
       if (response.ok) {
         const data = await response.json();
-        setStats(data);
+        const sensorData = data.success ? data.data : data;
+        
+        if (sensorData && sensorData.length > 0) {
+          const totalReadings = sensorData.length;
+          const uniqueDevices = new Set(sensorData.map(d => d.device_id)).size;
+          const avgTemp = sensorData.reduce((sum, d) => sum + (d.temperature || 0), 0) / totalReadings;
+          const avgSignal = sensorData.reduce((sum, d) => sum + (d.wifi_signal || 0), 0) / totalReadings;
+          
+          setStats({
+            total_devices: uniqueDevices,
+            total_readings: totalReadings,
+            avg_temperature: avgTemp,
+            avg_wifi_signal: avgSignal
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching stats:', error);

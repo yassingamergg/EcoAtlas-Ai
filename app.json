@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "EcoAtlas AI",
+    "slug": "ecoatlas-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/ecoatlas-logo.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/ecoatlas-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ecoatlas.ai",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/ecoatlas-logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.ecoatlas.ai",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/favicon.ico",
+      "bundler": "metro"
+    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "scheme": "ecoatlas-ai",
+    "extra": {
+      "eas": {
+        "projectId": "4c64879f-d36e-47f2-b2c1-fb3560b98d2a"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

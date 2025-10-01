@@ -27,6 +27,13 @@ db.serialize(() => {
     air_quality INTEGER,
     co2_level INTEGER,
     light_level INTEGER,
+    gas_concentration REAL,
+    lpg_concentration REAL,
+    co_concentration REAL,
+    smoke_concentration REAL,
+    voltage REAL,
+    analog_raw INTEGER,
+    digital_alert INTEGER,
     wifi_signal INTEGER,
     location TEXT,
     node_type TEXT,
@@ -49,6 +56,13 @@ router.post('/sensor-data', (req, res) => {
       air_quality,
       co2_level,
       light_level,
+      gas_concentration,
+      lpg_concentration,
+      co_concentration,
+      smoke_concentration,
+      voltage,
+      analog_raw,
+      digital_alert,
       location,
       node_type
     } = req.body;
@@ -61,7 +75,7 @@ router.post('/sensor-data', (req, res) => {
     });
   }
 
-  // Handle simplified sensor data (ESP32 without external sensors)
+  // Handle sensor data (including MQ2 gas sensor data)
   const sensorData = {
     device_id,
     timestamp,
@@ -70,6 +84,13 @@ router.post('/sensor-data', (req, res) => {
     air_quality: air_quality || null,
     co2_level: co2_level || null,
     light_level: light_level || null,
+    gas_concentration: gas_concentration || null,
+    lpg_concentration: lpg_concentration || null,
+    co_concentration: co_concentration || null,
+    smoke_concentration: smoke_concentration || null,
+    voltage: voltage || null,
+    analog_raw: analog_raw || null,
+    digital_alert: digital_alert || null,
     wifi_signal: req.body.wifi_signal || null,
     location: location || 'Unknown',
     node_type: node_type || 'environmental'
@@ -78,8 +99,8 @@ router.post('/sensor-data', (req, res) => {
     // Insert sensor data into database
     const stmt = db.prepare(`
       INSERT INTO sensor_data 
-      (device_id, timestamp, temperature, humidity, air_quality, co2_level, light_level, wifi_signal, location, node_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (device_id, timestamp, temperature, humidity, air_quality, co2_level, light_level, gas_concentration, lpg_concentration, co_concentration, smoke_concentration, voltage, analog_raw, digital_alert, wifi_signal, location, node_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run([
@@ -90,6 +111,13 @@ router.post('/sensor-data', (req, res) => {
       air_quality || null,
       co2_level || null,
       light_level || null,
+      gas_concentration || null,
+      lpg_concentration || null,
+      co_concentration || null,
+      smoke_concentration || null,
+      voltage || null,
+      analog_raw || null,
+      digital_alert || null,
       wifi_signal || null,
       location || 'Unknown',
       node_type || 'environmental'

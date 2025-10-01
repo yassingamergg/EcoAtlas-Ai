@@ -12,7 +12,10 @@ import {
   Power,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Flame,
+  Cloud,
+  Shield
 } from 'lucide-react';
 
 const RealTimeIoTSensors = () => {
@@ -29,7 +32,9 @@ const RealTimeIoTSensors = () => {
 
   // Get device status
   const getDeviceStatus = (deviceId) => {
-    return deviceStatus[deviceId] || { status: 'unknown' };
+    // If we have sensor data, device is online
+    const hasData = sensorData.some(data => data.device_id === deviceId);
+    return deviceStatus[deviceId] || { status: hasData ? 'online' : 'offline' };
   };
 
   // Get unique devices
@@ -75,6 +80,30 @@ const RealTimeIoTSensors = () => {
     if (pm25 <= 35) return { status: 'Moderate', color: 'text-yellow-600', bg: 'bg-yellow-100' };
     if (pm25 <= 55) return { status: 'Unhealthy for Sensitive', color: 'text-orange-600', bg: 'bg-orange-100' };
     return { status: 'Unhealthy', color: 'text-red-600', bg: 'bg-red-100' };
+  };
+
+  // Get gas concentration status
+  const getGasStatus = (concentration, type) => {
+    let thresholds = {};
+    
+    switch (type) {
+      case 'lpg':
+        thresholds = { good: 100, moderate: 500, unhealthy: 1000 };
+        break;
+      case 'co':
+        thresholds = { good: 10, moderate: 25, unhealthy: 50 };
+        break;
+      case 'smoke':
+        thresholds = { good: 50, moderate: 150, unhealthy: 300 };
+        break;
+      default:
+        thresholds = { good: 200, moderate: 500, unhealthy: 1000 };
+    }
+    
+    if (concentration <= thresholds.good) return { status: 'Good', color: 'text-green-600', bg: 'bg-green-100' };
+    if (concentration <= thresholds.moderate) return { status: 'Moderate', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+    if (concentration <= thresholds.unhealthy) return { status: 'Caution', color: 'text-orange-600', bg: 'bg-orange-100' };
+    return { status: 'Danger', color: 'text-red-600', bg: 'bg-red-100' };
   };
 
   return (
@@ -128,6 +157,40 @@ const RealTimeIoTSensors = () => {
           <p className="text-red-700 mt-1">{error}</p>
         </div>
       )}
+
+      {/* Debug Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <Activity className="w-5 h-5 text-blue-600" />
+          <span className="text-blue-800 font-medium">Debug Info</span>
+        </div>
+        <p className="text-blue-700 text-sm">
+          Sensor Data Count: {sensorData.length} | 
+          Devices: {devices.length} | 
+          Connection: {isConnected ? 'Connected' : 'Disconnected'}
+        </p>
+        {sensorData.length > 0 && (
+          <p className="text-blue-700 text-sm mt-1">
+            Latest: {sensorData[0]?.device_id} - {sensorData[0]?.temperature?.toFixed(1)}°C - {sensorData[0]?.wifi_signal}dBm
+          </p>
+        )}
+        <button 
+          onClick={async () => {
+            try {
+              const response = await fetch('http://localhost:5000/api/sensor-data');
+              const data = await response.json();
+              console.log('API Test Result:', data);
+              alert(`API Test: Found ${data.success ? data.data.length : 0} sensor readings`);
+            } catch (error) {
+              console.error('API Test Error:', error);
+              alert('API Test Failed: ' + error.message);
+            }
+          }}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Test API Connection
+        </button>
+      </div>
 
       {/* Statistics */}
       {stats && (
@@ -222,85 +285,154 @@ const RealTimeIoTSensors = () => {
               {/* Sensor Data */}
               {latestData ? (
                 <div className="space-y-3">
-                  {/* Temperature & Humidity */}
+                  {/* Temperature & WiFi Signal */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center space-x-2">
                       <Thermometer className="w-4 h-4 text-red-500" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          {latestData.temperature.toFixed(1)}°C
+                          {latestData.temperature ? latestData.temperature.toFixed(1) : '--'}°C
                         </p>
                         <p className="text-xs text-gray-600">Temperature</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Droplet className="w-4 h-4 text-blue-500" />
+                      <Wifi className="w-4 h-4 text-blue-500" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          {latestData.humidity.toFixed(1)}%
+                          {latestData.wifi_signal || '--'} dBm
                         </p>
-                        <p className="text-xs text-gray-600">Humidity</p>
+                        <p className="text-xs text-gray-600">WiFi Signal</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Air Quality */}
-                  {airQuality && (
-                    <div className="flex items-center space-x-2">
-                      <Wind className="w-4 h-4 text-green-500" />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-gray-900">
-                            {latestData.pm25.toFixed(1)} μg/m³
-                          </p>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${airQuality.bg} ${airQuality.color}`}>
-                            {airQuality.status}
-                          </span>
+                  {/* MQ2 Gas Sensor Data */}
+                  {latestData.node_type === 'mq2_gas_sensor' && (
+                    <div className="space-y-3">
+                      {/* Gas Alert Status */}
+                      {latestData.digital_alert === 1 && (
+                        <div className="bg-red-100 border border-red-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2">
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-800">GAS ALERT DETECTED!</span>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-600">PM2.5 Air Quality</p>
+                      )}
+
+                      {/* Gas Concentrations */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {latestData.gas_concentration !== null && (
+                          <div className="flex items-center space-x-2">
+                            <Cloud className="w-4 h-4 text-purple-500" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {latestData.gas_concentration ? latestData.gas_concentration.toFixed(0) : '--'} ppm
+                              </p>
+                              <p className="text-xs text-gray-600">Gas Level</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {latestData.lpg_concentration !== null && (
+                          <div className="flex items-center space-x-2">
+                            <Flame className="w-4 h-4 text-orange-500" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {latestData.lpg_concentration ? latestData.lpg_concentration.toFixed(0) : '--'} ppm
+                              </p>
+                              <p className="text-xs text-gray-600">LPG</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {latestData.co_concentration !== null && (
+                          <div className="flex items-center space-x-2">
+                            <Shield className="w-4 h-4 text-gray-500" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {latestData.co_concentration ? latestData.co_concentration.toFixed(0) : '--'} ppm
+                              </p>
+                              <p className="text-xs text-gray-600">CO</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {latestData.smoke_concentration !== null && (
+                          <div className="flex items-center space-x-2">
+                            <Cloud className="w-4 h-4 text-gray-600" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {latestData.smoke_concentration ? latestData.smoke_concentration.toFixed(0) : '--'} ppm
+                              </p>
+                              <p className="text-xs text-gray-600">Smoke</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Gas Status Indicators */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {latestData.lpg_concentration !== null && (
+                          <div className={`p-2 rounded-lg text-center ${getGasStatus(latestData.lpg_concentration, 'lpg').bg}`}>
+                            <p className={`text-xs font-medium ${getGasStatus(latestData.lpg_concentration, 'lpg').color}`}>
+                              LPG: {getGasStatus(latestData.lpg_concentration, 'lpg').status}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {latestData.co_concentration !== null && (
+                          <div className={`p-2 rounded-lg text-center ${getGasStatus(latestData.co_concentration, 'co').bg}`}>
+                            <p className={`text-xs font-medium ${getGasStatus(latestData.co_concentration, 'co').color}`}>
+                              CO: {getGasStatus(latestData.co_concentration, 'co').status}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {latestData.smoke_concentration !== null && (
+                          <div className={`p-2 rounded-lg text-center ${getGasStatus(latestData.smoke_concentration, 'smoke').bg}`}>
+                            <p className={`text-xs font-medium ${getGasStatus(latestData.smoke_concentration, 'smoke').color}`}>
+                              Smoke: {getGasStatus(latestData.smoke_concentration, 'smoke').status}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sensor Technical Data */}
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-gray-600">Voltage:</span>
+                            <span className="ml-1 font-medium">{latestData.voltage ? latestData.voltage.toFixed(2) : '--'}V</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Analog:</span>
+                            <span className="ml-1 font-medium">{latestData.analog_raw || '--'}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Power & CO2 */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Zap className="w-4 h-4 text-yellow-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {latestData.power_consumption.toFixed(1)}W
-                        </p>
-                        <p className="text-xs text-gray-600">Power</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Globe className="w-4 h-4 text-purple-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {latestData.co2.toFixed(0)} ppm
-                        </p>
-                        <p className="text-xs text-gray-600">CO₂</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Carbon Emissions */}
+                  {/* Location & Device Info */}
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Power className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-gray-900">Carbon Emissions</span>
+                        <Globe className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-medium text-gray-900">Location</span>
                       </div>
                       <span className="text-sm font-bold text-green-600">
-                        {carbonEmissions.toFixed(3)} kg CO₂
+                        {latestData.location || 'Unknown'}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">Estimated from power consumption</p>
+                    <p className="text-xs text-gray-600 mt-1">Device Type: {latestData.node_type || 'ESP32'}</p>
                   </div>
 
                   {/* Last Update */}
                   <div className="text-xs text-gray-500 text-center">
-                    Last update: {new Date(latestData.timestamp).toLocaleTimeString()}
+                    Last update: {new Date().toLocaleTimeString()}
                   </div>
                 </div>
               ) : (
@@ -327,8 +459,9 @@ const RealTimeIoTSensors = () => {
             <ol className="text-sm text-blue-800 text-left space-y-1">
               <li>1. Upload the ESP32 firmware</li>
               <li>2. Configure WiFi credentials</li>
-              <li>3. Connect sensors (DHT22, BME280, PMS5003)</li>
-              <li>4. Power on the device</li>
+              <li>3. Connect sensors (DHT22, MQ2, BME280, PMS5003)</li>
+              <li>4. Connect LCD display (I2C)</li>
+              <li>5. Power on the device</li>
             </ol>
           </div>
         </div>

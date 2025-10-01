@@ -1,0 +1,45 @@
+ESP32 + LCD + MQ-2 Breadboard Connection Diagram
+================================================
+
+Breadboard Layout (Top View):
+┌─────────────────────────────────────────────────────────┐
+│  +  +  +  +  +  +  +  +  +  +  +  +  +  +  +  +  +  +  │ ← Power Rails (+)
+│  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  │ ← Power Rails (-)
+│                                                         │
+│  ESP32 DEV BOARD                                        │
+│  ┌─────────────────┐                                    │
+│  │ 3.3V  GND  EN   │                                    │
+│  │ GPIO1 GPIO3 RST │                                    │
+│  │ GPIO21 GPIO22   │ ← I2C Pins                        │
+│  │ GPIO34 GPIO35   │ ← Analog Pins                     │
+│  └─────────────────┘                                    │
+│                                                         │
+│  LCD (I2C)          MQ-2 SENSOR                        │
+│  ┌─────────┐       ┌─────────┐                         │
+│  │ VCC GND │       │ VCC GND │                         │
+│  │ SDA SCL │       │ A0  D0  │                         │
+│  └─────────┘       └─────────┘                         │
+└─────────────────────────────────────────────────────────┘
+
+Connections:
+============
+ESP32 3.3V  → Power Rail (+) → LCD VCC, MQ-2 VCC
+ESP32 GND   → Power Rail (-) → LCD GND, MQ-2 GND
+ESP32 GPIO21 → LCD SDA
+ESP32 GPIO22 → LCD SCL
+ESP32 GPIO34 → MQ-2 A0 (Analog)
+ESP32 GPIO35 → MQ-2 D0 (Digital)
+
+Power Requirements:
+==================
+- ESP32: 3.3V (can be powered via USB)
+- LCD: 3.3V or 5V (I2C)
+- MQ-2: 5V recommended (better sensitivity)
+
+Pin Functions:
+==============
+GPIO 21: I2C SDA (Serial Data)
+GPIO 22: I2C SCL (Serial Clock)
+GPIO 34: Analog Input (MQ-2 gas concentration)
+GPIO 35: Digital Input (MQ-2 threshold alert)
+

@@ -1,0 +1,13 @@
+# Vercel Environment Variables
+# Copy these variables to your Vercel dashboard under Settings > Environment Variables
+
+# Frontend Configuration
+REACT_APP_API_URL=https://your-backend-url.herokuapp.com/api
+REACT_APP_GOOGLE_CLIENT_ID=your_actual_google_client_id_here
+
+# For full-stack deployment (if using Vercel Functions)
+# REACT_APP_API_URL=/api
+
+# Build Configuration
+GENERATE_SOURCEMAP=false
+CI=false
