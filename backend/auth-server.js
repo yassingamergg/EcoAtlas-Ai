@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -44,7 +44,7 @@ app.use('/api/auth', authLimiter);
 app.use(generalLimiter);
 
 // Database setup
-const db = new sqlite3.Database('./auth.db');
+const db = new Database('./auth.db');
 
 // Create users table with security features
 db.serialize(() => {
